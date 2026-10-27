@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b2545">
+    <meta name="description" content="Gestor de contactos desarrollado en lenguaje C modular y compilado a WebAssembly para ejecutarse en el navegador. UNCSM.">
+    <title>Gestor de Contactos · C + WebAssembly | UNCSM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <!-- Encabezado Institucional UNCSM -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-badge">UNCSM</div>
+                <div class="brand-info">
+                    <strong>UNIVERSIDAD NACIONAL CASIMIRO SOTELO MONTENEGRO</strong>
+                    <span>Programación Estructurada · Laboratorio de Lenguaje C</span>
+                </div>
+            </div>
+            <div class="header-tags">
+                <a href="https://virtualexpo-estudiantes-csm.vercel.app/#portada" target="_blank" rel="noopener noreferrer" class="tag-portal" title="Volver a la feria virtual">
+                    <span>VirtualExpo</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <span class="tag-academic">INS3111 · INS3131</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-pill">
+                <span class="pulsar"></span>
+                <span>PROGRAMACIÓN EN C MODULAR &rarr; WEBASSEMBLY</span>
+            </div>
+            <h1 class="hero-titulo">Gestor de Contactos<br><span class="texto-gradiente">en tu navegador.</span></h1>
+            <p class="hero-descripcion">
+                Sistema de agenda desarrollado con estructuras, punteros y validaciones en <strong>C puro</strong>. 
+                Compilado con <strong>Emscripten</strong> a <strong>WebAssembly</strong> para ejecutarse a máxima velocidad sin depender de servidores.
+            </p>
+
+            <div class="hero-metricas">
+                <div class="metrica-item">
+                    <span class="metrica-valor">100%</span>
+                    <span class="metrica-etiqueta">Lógica en C</span>
+                </div>
+                <div class="metrica-divisor"></div>
+                <div class="metrica-item">
+                    <span class="metrica-valor">0.0 ms</span>
+                    <span class="metrica-etiqueta">Latencia de red</span>
+                </div>
+                <div class="metrica-divisor"></div>
+                <div class="metrica-item">
+                    <span class="metrica-valor" id="badgeTotal">0</span>
+                    <span class="metrica-etiqueta">Contactos en Wasm</span>
+                </div>
+                <div class="metrica-divisor"></div>
+                <div class="metrica-item">
+                    <span class="status-badge" id="wasm-status">Inicializando WebAssembly...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mensaje de estado flotante -->
+        <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
+
+        <!-- Área de Trabajo Principal: Formulario + Lista de Contactos -->
+        <div class="grid-principal">
+            <!-- Tarjeta 1: Formulario de Contacto -->
+            <section class="tarjeta form-card" id="form-card">
+                <div class="tarjeta-cabecera">
+                    <div>
+                        <span class="paso-badge">OPERACIÓN C</span>
+                        <h2 id="tituloForm">Nuevo contacto</h2>
+                        <p class="subtitulo">Los campos se envían como punteros de caracteres a C.</p>
+                    </div>
+                </div>
+
+                <div class="formulario-cuerpo">
+                    <div class="campo-grupo">
+                        <label for="nombre">Nombre completo <span class="requerido">*</span></label>
+                        <div class="input-contenedor">
+                            <svg class="input-icono" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input id="nombre" type="text" placeholder="Ej. Ana Patricia González" maxlength="49" autocomplete="name">
+                        </div>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="telefono">Número de teléfono</label>
+                        <div class="input-contenedor">
+                            <svg class="input-icono" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <input id="telefono" type="tel" placeholder="Ej. 8899-1234" maxlength="19" autocomplete="tel">
+                        </div>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="correo">Correo electrónico</label>
+                        <div class="input-contenedor">
+                            <svg class="input-icono" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            <input id="correo" type="email" placeholder="Ej. ana.gonzalez@uncsm.edu.ni" maxlength="49" autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="acciones-formulario">
+                        <button id="btnGuardar" class="btn-primario" type="button">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            <span>Agregar contacto</span>
+                        </button>
+                        <button id="btnCancelar" class="btn-secundario" type="button" hidden>
+                            <span>Cancelar</span>
+                        </button>
+                    </div>
+
+                    <div class="separador-formulario"></div>
+
+                    <div class="atajos-formulario">
+                        <button id="btnEjemplos" class="btn-atajo" type="button" title="Cargar lote de contactos de demostración">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                            <span>Cargar datos de ejemplo</span>
+                        </button>
+                        <button id="btnVaciar" class="btn-atajo peligro" type="button" title="Liberar todos los contactos de la memoria">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            <span>Vaciar agenda</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tarjeta 2: Directorio de Contactos -->
+            <section class="tarjeta lista-card">
+                <div class="tarjeta-cabecera cabecera-lista">
+                    <div>
+                        <span class="paso-badge">MEMORIA C</span>
+                        <h2>Directorio de Contactos</h2>
+                    </div>
+                    <div class="acciones-cabecera">
+                        <button id="btnExportar" class="btn-secundario mini" type="button" title="Exportar agenda en formato CSV">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>Exportar CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Capacidad de la Agenda -->
+                <div class="capacidad-barra-contenedor">
+                    <div class="capacidad-etiquetas">
+                        <span>Capacidad en memoria (C)</span>
+                        <span id="textoProgreso">0 / 100 contactos</span>
+                    </div>
+                    <div class="barra-fondo">
+                        <div class="barra-relleno" id="progresoAgenda" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Buscador en tiempo real -->
+                <div class="buscador-contenedor">
+                    <svg class="buscador-icono" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input id="buscar" type="search" placeholder="Buscar por nombre, teléfono o correo..." autocomplete="off">
+                </div>
+
+                <!-- Lista dinámica renderizada desde Wasm -->
+                <ul id="lista" class="lista-contactos">
+                    <!-- Se llena automáticamente con app.js -->
+                </ul>
+            </section>
+        </div>
+
+        <!-- Consola de Ejecución en C (Salida real de printf) -->
+        <section class="consola-seccion" id="consola">
+            <div class="seccion-encabezado">
+                <div>
+                    <span class="paso-badge">SALIDA DEL PROGRAMA</span>
+                    <h2 class="seccion-titulo">Consola de ejecución · Lenguaje C</h2>
+                    <p class="seccion-sub">
+                        Salida directa de <code>printf()</code> y mensajes de depuración generados por las funciones en C al ejecutarse en WebAssembly.
+                    </p>
+                </div>
+                <div class="consola-acciones">
+                    <button id="btnCopiarConsola" class="btn-consola" type="button">Copiar salida</button>
+                    <button id="btnLimpiarConsola" class="btn-consola" type="button">Limpiar consola</button>
+                </div>
+            </div>
+
+            <div class="terminal-c">
+                <div class="terminal-barra">
+                    <div class="terminal-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <div class="terminal-titulo">
+                        <span class="terminal-prompt">&gt;_</span>
+                        <span>contactos.c &middot; WebAssembly Runtime</span>
+                    </div>
+                    <div class="terminal-badge">STDOUT / STDERR</div>
+                </div>
+                <pre id="salida-c" class="terminal-cuerpo" tabindex="0" role="log" aria-live="polite"></pre>
+                <div class="terminal-pie">
+                    <span>Compilado con Emscripten (-sMODULARIZE=1)</span>
+                    <span>Salida real de printf()</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Explicativa: Cómo Funciona -->
+        <section class="como-funciona-seccion" id="como-funciona">
+            <div class="seccion-encabezado">
+                <div>
+                    <span class="paso-badge">ARQUITECTURA DEL PROYECTO</span>
+                    <h2 class="seccion-titulo">¿Cómo funciona la conexión C &rarr; WebAssembly?</h2>
+                    <p class="seccion-sub">El flujo completo desde el código fuente hasta la ejecución en el navegador.</p>
+                </div>
+            </div>
+
+            <div class="grid-pasos">
+                <div class="paso-card">
+                    <span class="paso-numero">01</span>
+                    <h3>Código en C Modular</h3>
+                    <p>La estructura <code>Contacto</code>, las funciones de inserción, edición, búsqueda y borrado se implementaron en <code>contactos.c</code> con validación estricta de memoria.</p>
+                </div>
+                <div class="paso-card">
+                    <span class="paso-numero">02</span>
+                    <h3>Compilación con Emscripten</h3>
+                    <p>El compilador <code>emcc</code> traduce el código C a bytecode de WebAssembly (<code>proyecto.wasm</code>) y genera el archivo pegamento (<code>proyecto.js</code>).</p>
+                </div>
+                <div class="paso-card">
+                    <span class="paso-numero">03</span>
+                    <h3>Puente con JavaScript</h3>
+                    <p>Mediante <code>cwrap</code> y <code>ccall</code>, JavaScript pasa cadenas y enteros directamente a la memoria lineal del módulo Wasm sin intermediarios.</p>
+                </div>
+                <div class="paso-card">
+                    <span class="paso-numero">04</span>
+                    <h3>Interfaz Reactiva</h3>
+                    <p>Cada interacción del usuario ejecuta funciones de C en microsegundos y los resultados de <code>printf()</code> se transmiten en vivo a la consola.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pie de Página Institucional -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <strong>Universidad Nacional Casimiro Sotelo Montenegro</strong>
+                <p>VirtualExpo · Feria de proyectos estudiantiles de Programación Estructurada</p>
+                <p>Grupos <strong>INS3111</strong> y <strong>INS3131</strong> &middot; Tutor: <strong>Ing. Iván Bonilla Villarreal</strong></p>
+            </div>
+            <div class="footer-col right">
+                <div class="footer-badges">
+                    <span class="f-badge">C puro</span>
+                    <span class="f-badge">WebAssembly</span>
+                    <span class="f-badge">Emscripten</span>
+                </div>
+                <p class="footer-credito">Desarrollado con fines académicos &middot; 2026</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Carga del pegamento generado por Emscripten y del script de control -->
+    <script src="proyecto.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
